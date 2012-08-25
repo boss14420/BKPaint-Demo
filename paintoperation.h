@@ -7,6 +7,8 @@ class PaintOperation
 {
 public:
     PaintOperation();
+    virtual ~PaintOperation();
+
     virtual void operate(QPainter&) = 0;
 };
 

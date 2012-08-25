@@ -3,3 +3,7 @@
 PaintOperation::PaintOperation()
 {
 }
+
+PaintOperation::~PaintOperation()
+{
+}

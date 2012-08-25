@@ -20,7 +20,9 @@ SOURCES += main.cpp\
     addrect.cpp \
     addimage.cpp \
     changeline.cpp \
-    changerect.cpp
+    changerect.cpp \
+    player.cpp \
+    mousepress.cpp
 
 HEADERS  += mainwindow.h \
     canvas.h \
@@ -29,7 +31,9 @@ HEADERS  += mainwindow.h \
     addrect.h \
     addimage.h \
     changeline.h \
-    changerect.h
+    changerect.h \
+    player.h \
+    mousepress.h
 
 FORMS    += mainwindow.ui \
     canvas.ui

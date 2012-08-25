@@ -8,11 +8,7 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "addline.h"
-#include "addrect.h"
-#include "addimage.h"
-#include "changeline.h"
-#include "changerect.h"
+#include "player.h"
 
 Canvas::Canvas(QWidget *parent) :
     QWidget(parent),
@@ -37,7 +33,7 @@ Canvas::Canvas(QWidget *parent) :
 
     mousePress = false;
 
-    connect (&timer, SIGNAL(timeout()), this, SLOT(operateNext()));
+    player = new Player(this);
 }
 
 Canvas::~Canvas()
@@ -57,39 +53,16 @@ void Canvas::setMode (DrawMode m) {
 }
 
 void Canvas::replay () {
-    mode = Replay;
-    currentOp = operations.begin ();
-    tempImage = QImage(image->size (), QImage::Format_ARGB32_Premultiplied);
-    tempImage.fill(Qt::white);
-    painter.end();
-    painter.begin (&tempImage);
-    repaint();
-
-    timer.setInterval (50);
-    timer.start ();
-}
-
-void Canvas::operateNext () {
-    if(currentOp != operations.end()) {
-        painter.end();
-        painter.begin (&tempImage);
-        (*currentOp)->operate(painter);
-        ++currentOp;
-        repaint();
-    } else
-        timer.stop ();
+    player->play ();
 }
 
 void Canvas::paintEvent (QPaintEvent *) {
     painter.end();
     painter.begin (this);
-    if(mode != Replay) {
-        painter.drawImage (0, 0, *image);
+    if(mode == Replay) {
+        painter.drawImage (0, 0, *player->getImage());
     } else {
-//        QList<PaintOperation*>::iterator pi;
-//        for(pi = operations.begin (); pi != currentOp; ++pi)
-//            (*pi)->operate(painter);
-        painter.drawImage (0, 0, tempImage);
+        painter.drawImage (0, 0, *image);
     }
 
 //    QWidget::paintEvent (event);
@@ -104,8 +77,8 @@ void Canvas::mousePressEvent (QMouseEvent *event) {
     if(mode != Replay) {
         startPoint = lastPoint = event->pos ();
         mousePress = true;
-        tempImage = image->copy (QRect(startPoint, lastPoint));
-        //    tempImage = image->copy ()  ;
+        tempImage = image->copy (QRect(startPoint, startPoint));
+        player->mousePress(startPoint);
     }
 }
 
@@ -115,19 +88,13 @@ void Canvas::mouseMoveEvent (QMouseEvent *event) {
         painter.begin(image);
         if(mode == FreeDraw) {
             painter.drawLine (lastPoint, event->pos());
-            operations << new AddLine(QLine(lastPoint, event->pos()));
+            player->addLine (QLine(lastPoint, event->pos ()));
         } else {
             // restore old region
 //            image->fill(Qt::transparent);
-//            painter.fillRect ( std::min(startPoint.x(), lastPoint.x()),
-//                               std::min(startPoint.y(), lastPoint.y()),
-//                               tempImage.width (), tempImage.height (),
-//                               Qt::transparent );
-            QPoint topLeft(std::min(startPoint.x(), lastPoint.x()),
+            QPoint lastTopLeft(std::min(startPoint.x(), lastPoint.x()),
                             std::min(startPoint.y(), lastPoint.y()));
-            painter.drawImage( topLeft, tempImage );
-            AddImage addimage(topLeft, tempImage);
-//            painter.drawImage (0, 0, tempImage);
+            painter.drawImage(lastTopLeft, tempImage );
 
             // save region
             int xmin = std::min(startPoint.x(), event->pos().x());
@@ -139,13 +106,11 @@ void Canvas::mouseMoveEvent (QMouseEvent *event) {
             switch(mode) {
             case DrawLine:
                 painter.drawLine (startPoint, event->pos());
-                operations << new ChangeLine(
-                            AddLine(QLine(startPoint, event->pos())) , addimage);
+                player->changeLine (QLine(startPoint, event->pos()), lastTopLeft, QPoint(xmin, ymin));
                 break;
             case DrawRectangle:
                 painter.drawRect (xmin, ymin, w-4, h-4);
-                operations << new ChangeRect(
-                            AddRect(QRect(xmin, ymin, w-4, h-4)), addimage);
+                player->changeRect (QRect(xmin, ymin, w-4, h-4), lastTopLeft, QPoint(xmin, ymin));
                 break;
             default:
                 break;

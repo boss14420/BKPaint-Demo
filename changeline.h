@@ -1,18 +1,21 @@
 #ifndef CHANGELINE_H
 #define CHANGELINE_H
 
-#include "addline.h"
-#include "addimage.h"
+#include "paintoperation.h"
+#include <QLine>
+
+class QImage;
 
 class ChangeLine : public PaintOperation
 {
 public:
-    ChangeLine(AddLine const&, AddImage const&);
+    ChangeLine(QLine const&, QPoint const&, QPoint const&, QImage*);
     void operate(QPainter &);
 
 private:
-    AddLine addline;
-    AddImage addimage;
+    QLine line;
+    QPoint lastTopLeft, topLeft;
+    QImage *tempImage;
 };
 
 #endif // CHANGELINE_H

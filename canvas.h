@@ -10,6 +10,7 @@
 class QImage;
 class QPicture;
 class PaintOperation;
+class Player;
 
 namespace Ui {
 class Canvas;
@@ -41,9 +42,6 @@ protected:
     void mouseMoveEvent (QMouseEvent *);
     void mouseReleaseEvent (QMouseEvent *);
 
-private slots:
-    void operateNext();
-
 private:
     Ui::Canvas *ui;
 
@@ -55,9 +53,7 @@ private:
     QPainter painter;
     bool mousePress;
 
-    QList<PaintOperation*> operations;
-    QList<PaintOperation*>::iterator currentOp;
-    QTimer timer;
+    Player *player;
 };
 
 #endif // CANVAS_H

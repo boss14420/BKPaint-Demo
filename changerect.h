@@ -1,18 +1,21 @@
 #ifndef CHANGERECT_H
 #define CHANGERECT_H
 
-#include "addrect.h"
-#include "addimage.h"
+#include "paintoperation.h"
+#include <QRect>
+
+class QImage;
 
 class ChangeRect : public PaintOperation
 {
 public:
-    ChangeRect(AddRect const&, AddImage const&);
+    ChangeRect(QRect const&, QPoint const&, QPoint const&, QImage*);
     void operate(QPainter&);
 
 private:
-    AddRect addrect;
-    AddImage addimage;
+    QRect rect;
+    QPoint lastTopLeft, topLeft;
+    QImage *tempImage;
 };
 
 #endif // CHANGERECT_H
