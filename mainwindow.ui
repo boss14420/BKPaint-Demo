@@ -85,6 +85,9 @@
    </property>
   </action>
   <action name="actionReplay">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Replay</string>
    </property>
