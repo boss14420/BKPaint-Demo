@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     drawModeActionGroup->addAction(ui->actionLine);
     drawModeActionGroup->addAction(ui->actionRectangle);
     drawModeActionGroup->addAction(ui->actionFreeDraw);
+    drawModeActionGroup->addAction(ui->actionReplay);
 
     ui->actionFreeDraw->setChecked(true);
     ui->canvas->setMode (Canvas::FreeDraw);

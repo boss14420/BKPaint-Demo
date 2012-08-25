@@ -101,10 +101,12 @@ void Canvas::resizeEvent (QResizeEvent *event) {
 }
 
 void Canvas::mousePressEvent (QMouseEvent *event) {
-    startPoint = lastPoint = event->pos ();
-    mousePress = true;
-    tempImage = image->copy (QRect(startPoint, lastPoint));
-//    tempImage = image->copy ()  ;
+    if(mode != Replay) {
+        startPoint = lastPoint = event->pos ();
+        mousePress = true;
+        tempImage = image->copy (QRect(startPoint, lastPoint));
+        //    tempImage = image->copy ()  ;
+    }
 }
 
 void Canvas::mouseMoveEvent (QMouseEvent *event) {
