@@ -2,6 +2,7 @@
 #define CANVAS_H
 
 #include <QWidget>
+#include <QEvent>
 #include <QPoint>
 #include <QPainter>
 #include <QList>
@@ -16,12 +17,13 @@ namespace Ui {
 class Canvas;
 }
 
+
 class Canvas : public QWidget
 {
     Q_OBJECT
 
 public:
-    enum DrawMode { DrawLine, DrawRectangle, FreeDraw, Replay };
+    enum DrawMode { DrawLine, DrawRectangle, FreeDraw };
 
 public:
     explicit Canvas(QWidget *parent = 0);
@@ -31,8 +33,10 @@ public:
 
     void setMode(DrawMode);
 
+    friend class Player;
+
 public slots:
-    void replay();
+    void setReplay(bool);
 
 protected:
     void paintEvent (QPaintEvent *);
@@ -43,17 +47,34 @@ protected:
     void mouseReleaseEvent (QMouseEvent *);
 
 private:
+    void processMousePress(QMouseEvent *);
+    void processMouseMove(QMouseEvent *);
+    void processMouseRelease(QMouseEvent *);
+
     Ui::Canvas *ui;
 
-    QImage *image, tempImage;
+    QImage *image, *usingImage, tempImage;
     QPicture *picture;
     DrawMode mode;
 
     QPoint startPoint, lastPoint;
     QPainter painter;
     bool mousePress;
+    bool isReplay;
 
     Player *player;
 };
 
+class CanvasChangeModeEvent : public QEvent {
+public:
+    CanvasChangeModeEvent(Canvas::DrawMode m)
+        : QEvent(EventType), m(m)
+    {}
+
+    static const Type EventType = User;
+
+    Canvas::DrawMode mode() const { return m; }
+private:
+    Canvas::DrawMode m;
+};
 #endif // CANVAS_H

@@ -15,12 +15,12 @@ MainWindow::MainWindow(QWidget *parent) :
     drawModeActionGroup->addAction(ui->actionLine);
     drawModeActionGroup->addAction(ui->actionRectangle);
     drawModeActionGroup->addAction(ui->actionFreeDraw);
-    drawModeActionGroup->addAction(ui->actionReplay);
 
     ui->actionFreeDraw->setChecked(true);
     ui->canvas->setMode (Canvas::FreeDraw);
 
-    connect (ui->actionReplay, SIGNAL(triggered()), ui->canvas, SLOT(replay()));
+//    connect (ui->actionReplay, SIGNAL(toggled(bool)), ui->canvas, SLOT(setReplay(bool)));
+//    ui->actionReplay->setChecked (false);
 }
 
 MainWindow::~MainWindow()

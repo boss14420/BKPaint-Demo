@@ -9,6 +9,11 @@
 #include <cmath>
 
 #include "player.h"
+extern template
+    void Player::addEvent<QMouseEvent>(QMouseEvent*);
+extern template
+    void Player::addEvent<CanvasChangeModeEvent>(CanvasChangeModeEvent*);
+
 
 Canvas::Canvas(QWidget *parent) :
     QWidget(parent),
@@ -27,11 +32,13 @@ Canvas::Canvas(QWidget *parent) :
     image = new QImage(size (), QImage::Format_ARGB32_Premultiplied);
 //    image->fill (Qt::transparent);
     image->fill (Qt::white);
+    usingImage = image;
 
     painter.begin (image);
     painter.setPen (Qt::black);
 
     mousePress = false;
+    isReplay = false;
 
     player = new Player(this);
 }
@@ -50,20 +57,35 @@ QImage const * Canvas::getImage () const {
 
 void Canvas::setMode (DrawMode m) {
     mode = m;
+
+    if(!isReplay) {
+        CanvasChangeModeEvent evt(m);
+        player->addEvent(&evt);
+    }
 }
 
-void Canvas::replay () {
-    player->play ();
+void Canvas::setReplay (bool replay) {
+    if(replay) {
+        usingImage = player->getImage ();
+        isReplay = true;
+        player->play ();
+    } else {
+        isReplay = false;
+        player->stop();
+        usingImage = image;
+        repaint ();
+    }
 }
 
 void Canvas::paintEvent (QPaintEvent *) {
     painter.end();
     painter.begin (this);
-    if(mode == Replay) {
-        painter.drawImage (0, 0, *player->getImage());
-    } else {
-        painter.drawImage (0, 0, *image);
-    }
+//    if(mode == Replay) {
+//        painter.drawImage (0, 0, *player->getImage());
+//    } else {
+//        painter.drawImage (0, 0, *image);
+//    }
+    painter.drawImage (0, 0, *usingImage);
 
 //    QWidget::paintEvent (event);
 }
@@ -74,21 +96,42 @@ void Canvas::resizeEvent (QResizeEvent *event) {
 }
 
 void Canvas::mousePressEvent (QMouseEvent *event) {
-    if(mode != Replay) {
-        startPoint = lastPoint = event->pos ();
-        mousePress = true;
-        tempImage = image->copy (QRect(startPoint, startPoint));
-        player->mousePress(startPoint);
+    if(!isReplay) {
+        processMousePress (event);
+        player->addEvent (event);
     }
 }
 
 void Canvas::mouseMoveEvent (QMouseEvent *event) {
+    if(!isReplay) {
+        processMouseMove (event);
+        player->addEvent (event);
+    }
+}
+
+void Canvas::mouseReleaseEvent (QMouseEvent *event) {
+    if(!isReplay) {
+        processMouseRelease (event);
+        player->addEvent (event);
+    }
+}
+
+void Canvas::processMousePress (QMouseEvent *event) {
+//    if(mode != Replay) {
+        startPoint = lastPoint = event->pos ();
+        mousePress = true;
+        tempImage = usingImage->copy (QRect(startPoint, startPoint));
+//        player->mousePress(startPoint);
+//    }
+}
+
+void Canvas::processMouseMove (QMouseEvent *event) {
     if(mousePress) {
         painter.end();
-        painter.begin(image);
+        painter.begin(usingImage);
         if(mode == FreeDraw) {
             painter.drawLine (lastPoint, event->pos());
-            player->addLine (QLine(lastPoint, event->pos ()));
+//            player->addLine (QLine(lastPoint, event->pos ()));
         } else {
             // restore old region
 //            image->fill(Qt::transparent);
@@ -101,16 +144,16 @@ void Canvas::mouseMoveEvent (QMouseEvent *event) {
             int ymin = std::min(startPoint.y(), event->pos().y());
             int w    = std::abs (startPoint.x() - event->pos().x()) + 4;
             int h    = std::abs (startPoint.y() - event->pos().y()) + 4;
-            tempImage = image->copy (xmin, ymin, w, h);
+            tempImage = usingImage->copy (xmin, ymin, w, h);
 
             switch(mode) {
             case DrawLine:
                 painter.drawLine (startPoint, event->pos());
-                player->changeLine (QLine(startPoint, event->pos()), lastTopLeft, QPoint(xmin, ymin));
+//                player->changeLine (QLine(startPoint, event->pos()), lastTopLeft, QPoint(xmin, ymin));
                 break;
             case DrawRectangle:
                 painter.drawRect (xmin, ymin, w-4, h-4);
-                player->changeRect (QRect(xmin, ymin, w-4, h-4), lastTopLeft, QPoint(xmin, ymin));
+//                player->changeRect (QRect(xmin, ymin, w-4, h-4), lastTopLeft, QPoint(xmin, ymin));
                 break;
             default:
                 break;
@@ -121,16 +164,6 @@ void Canvas::mouseMoveEvent (QMouseEvent *event) {
     }
 }
 
-void Canvas::mouseReleaseEvent (QMouseEvent *) {
-//    switch(mode) {
-//        case DrawLine:
-//        case DrawRectangle:
-//            painter.end();
-//            painter.begin(picture);
-//            painter.
-//            break;
-//        default:
-//            break;
-//    }
+void Canvas::processMouseRelease (QMouseEvent *) {
     mousePress = false;
 }
